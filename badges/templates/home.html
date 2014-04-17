@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        {% crispy form %}
+                    </div>
+                </div>
+            </div>
+            {% for b in user.badges.all %}
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h6>{{ b.badge.title }}</h6>
+                        </div>
+                        <div class="panel-body">
+                            {% if b.year %}{% trans "Since" %} <b>{{ b.year }}</b>{% endif %}
+                            {% if b.description %}<p>{{ b.description }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        Сначала надо залогиниться.
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}
+
+{% block js %}
+    <script type="text/javascript"
+            src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/bloodhound.min.js"></script>
+    <script type="text/javascript"
+            src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.jquery.min.js"></script>
+    <script type="text/javascript"
+            src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
+
+    <style>
+        .typeahead,
+        .tt-query,
+        .tt-hint {
+            width: 170px;
+            height: 30px;
+            padding: 5px 10px;
+            line-height: 30px;
+            border: 2px solid #ccc;
+            -webkit-border-radius: 8px;
+            -moz-border-radius: 8px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .typeahead {
+            background-color: #fff;
+        }
+
+        .typeahead:focus {
+            border: 2px solid #0097cf;
+        }
+
+        .tt-query {
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        }
+
+        .tt-hint {
+            color: #999
+        }
+
+        .tt-dropdown-menu {
+            width: 170px;
+            margin-top: 0;
+            padding: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            -webkit-border-radius: 0 0 8px 8px;
+            -moz-border-radius: 0 0 8px 8px;
+            border-radius: 0 0 8px 8px;
+            -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+            -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+        }
+
+        .tt-suggestion {
+            padding: 0 10px;
+        }
+
+        .tt-suggestion.tt-cursor {
+            color: #fff;
+            background-color: #0097cf;
+        }
+
+        .tt-suggestion p {
+            margin: 0;
+        }
+    </style>
+
+    <script type="text/javascript">
+        var bh = new Bloodhound({
+            name: 'badges',
+            local: [
+                {% for b in badge_list %}
+                    {value: "{{ b.title|escapejs }}"}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            ],
+            // remote: '/badges?q=%QUERY',
+            datumTokenizer: function (d) {
+                return Bloodhound.tokenizers.whitespace(d.value);
+            },
+            queryTokenizer: Bloodhound.tokenizers.whitespace
+        });
+        bh.initialize();
+
+        $('#id_badge').typeahead({
+                    hint: true,
+                    highlight: true,
+                    minLength: 1
+                },
+                {
+                    name: 'badges',
+                    displayKey: 'value',
+                    // `ttAdapter` wraps the suggestion engine in an adapter that
+                    // is compatible with the typeahead jQuery plugin
+                    source: bh.ttAdapter()
+                });
+    </script>
+{% endblock js %}
